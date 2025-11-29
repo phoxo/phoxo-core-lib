@@ -57,7 +57,7 @@ namespace D2D
     {
         auto   prop = internal::BuildProperties(D2D1_RENDER_TARGET_TYPE_SOFTWARE);
         ID2D1RenderTargetPtr   ret;
-        if (bmp) // 传给D2D NULL竟然会crash...
+        if (bmp)
         {
             factory->CreateWicBitmapRenderTarget(bmp, &prop, &ret); assert(ret);
         }
@@ -120,7 +120,7 @@ namespace D2D
     }
 
     /// Creates an alpha mask from a text layout.
-    /// 1. This mask can be used with ImageFastPixel::SetRGBKeepAlpha to apply color.
+    /// 1. This mask can be used with ImageFastPixel::FillRGBKeepAlpha to apply color.
     inline Image CreateTextAlphaMask(IDWriteTextLayout* layout)
     {
         DWRITE_TEXT_METRICS   metrics{};
@@ -128,7 +128,7 @@ namespace D2D
             layout->GetMetrics(&metrics);
 
         Image   ret;
-        if (ret.Create((int)ceil(metrics.width), (int)ceil(metrics.height), 32))
+        if (ret.Create((int)ceil(metrics.width), (int)ceil(metrics.height)))
         {
             BitmapHDC   memdc(ret);
             if (auto target = CreateDCRenderTarget(D2D1_RENDER_TARGET_TYPE_SOFTWARE, memdc))

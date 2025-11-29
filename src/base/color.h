@@ -2,6 +2,17 @@
 
 _PHOXO_BEGIN
 
+enum class ColorChannel
+{
+    None = 0,
+    Red = 1 << 0,
+    Green = 1 << 1,
+    Blue = 1 << 2,
+    Alpha = 1 << 3,
+    RGB = Red | Green | Blue,
+    RGBA = Red | Green | Blue | Alpha
+};
+
 /// 32-bit BGRA color, compatible with RGBQUAD
 union Color
 {

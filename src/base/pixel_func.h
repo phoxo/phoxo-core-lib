@@ -8,7 +8,7 @@ class PixelFunc
 public:
     /// Bilinear interpolation at (x, y) using 4 pixels: p00 [0,0], p10 [1,0], p01 [0,1], p11 [1,1]
     /// x, y ¡Ê [0, 1), relative to p00
-    static Color CalcBilinear(double x, double y, const Color& p00, const Color& p10, const Color& p01, const Color& p11)
+    static Color CalcBilinear(double x, double y, Color p00, Color p10, Color p01, Color p11)
     {
         // Calculate bilinear weights and accumulate contributions
         double   sb = 0, sg = 0, sr = 0, sa = 0;
@@ -37,7 +37,7 @@ public:
         px.b = (BYTE)((px.b * px.a + 127) / 255);
     }
 
-    static void CompositeStraightAlpha(Color& down, const Color& up)
+    static void CompositeStraightAlpha(Color& down, Color up)
     {
         if (up.a == 0) // upper transparent -> skip
             return;
@@ -62,7 +62,7 @@ public:
         down.a = (BYTE)(outA + 0.5f);
     }
 
-    static void BlendStraightAlpha(Color& down, const Color& up)
+    static void BlendStraightAlpha(Color& down, Color up)
     {
         if (up.a == 0)
             return;

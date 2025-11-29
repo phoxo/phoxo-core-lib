@@ -44,7 +44,7 @@ public:
         CSize   sz = MeasureText() + CSize(margin * 2, margin * 2);
         Image   img;
         img.Create(sz);
-        img.ZeroPixels();
+        img.ClearBuffer();
         if (auto refbmp = GdiplusUtils::CreateBitmapReference(img))
         {
             auto   g = CreateGraphics(*refbmp);

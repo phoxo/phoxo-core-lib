@@ -12,6 +12,8 @@
 #include <string>
 #include <vector>
 #include <deque>
+#include <span>
+#include <optional>
 #include <algorithm>
 #include <execution>
 

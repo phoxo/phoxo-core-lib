@@ -6,13 +6,16 @@ _PHOXO_BEGIN
 class ImageHandler
 {
 public:
-    /// @name Process Image.
-    //@{
-    /// get region of image, rect_on_image must inside image.
-    static void GetRegion(const Image& img, CRect rect_on_image, Image& output)
+    /// @name Crop & Overlay
+    /// @{
+
+    /// copy region from img to output. rect must be fully inside src.
+    static Image GetRegion(const Image& img, CRect rect_on_image)
     {
         CRect   rc;
         rc.IntersectRect(CRect(0, 0, img.Width(), img.Height()), rect_on_image);
+
+        Image   output;
         if (!rc.IsRectEmpty() &&
             (rc == rect_on_image) &&
             output.Create(rc.Size(), img.ColorBits(), img.Attribute()))
@@ -22,9 +25,12 @@ public:
             {
                 memcpy(output.GetLinePtr(y), img.GetPixel(rc.left, rc.top + y), copy_bytes);
             }
-            return;
         }
-        assert(false);
+        else
+        {
+            assert(false);
+        }
+        return output;
     }
 
     /// cover image.
@@ -33,22 +39,27 @@ public:
         CRect   rect_top(pt_on_bottom, top.Size());
         CRect   rc;
         rc.IntersectRect(CRect(CPoint(), bottom.Size()), rect_top);
+
         if (!rc.IsRectEmpty() && (bottom.ColorBits() == top.ColorBits()) && (bottom.Attribute() == top.Attribute()))
         {
+            int   copy_bytes = rc.Width() * top.ColorBits() / 8;
             for (int y = rc.top; y < rc.bottom; y++)
             {
-                auto   dest = bottom.GetPixel(rc.left, y);
+                auto   dst = bottom.GetPixel(rc.left, y);
                 auto   src = top.GetPixel(rc.left - pt_on_bottom.x, y - pt_on_bottom.y);
-                memcpy(dest, src, rc.Width() * top.ColorBits() / 8);
+                memcpy(dst, src, copy_bytes);
             }
-            return;
         }
-        assert(false);
+        else
+        {
+            assert(false);
+        }
     }
-    //@}
+    /// @}
 
-    /// @name Create Image.
-    //@{
+    /// @name Create Image
+    /// @{
+
     /// Creates an Image from a gdiplus bitmap.
     static Image Make(Gdiplus::Bitmap& src, Gdiplus::PixelFormat output_format)
     {
@@ -79,18 +90,16 @@ public:
         auto    src = WIC::ConvertFormat(src_bmp, output_format);
         CSize   sz = WIC::GetBitmapSize(src);
 
-        Image   img;
-        if (img.Create(sz, bpp, attr))
+        if (Image img; img.Create(sz, bpp, attr))
         {
             // 如果没装hevc ext, heif文件CopyPixels返回0xc00d5212 (Unsupported File Format)
-            if (src->CopyPixels(NULL, img.Stride(), img.GetPixelBufferSize(), img.GetMemStart()) == S_OK)
+            if (src->CopyPixels(NULL, img.Stride(), img.PixelBufferSize(), img.GetMemStart()) == S_OK)
                 return img;
+            assert(false);
         }
-        assert(false);
-        img.Destroy();
-        return img;
+        return {};
     }
-    //@}
+    /// @}
 
 private:
     static int GetBitsPerPixel(REFWICPixelFormatGUID fmt)
@@ -100,7 +109,8 @@ private:
             (fmt == WICPremultiplied32bpp) ||
             (fmt == GUID_WICPixelFormat32bppBGR))
             return 32;
-        if (fmt == GUID_WICPixelFormat24bppBGR)  return 24;
+        if (fmt == GUID_WICPixelFormat24bppBGR)
+            return 24;
         assert(false);
         return 0;
     }

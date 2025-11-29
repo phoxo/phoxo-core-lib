@@ -37,8 +37,8 @@ private:
         CRect   total;
         total.UnionRect(rc, glow);
 
-        output.Create(total.Size(), 32);
-        output.ZeroPixels();
+        output.Create(total.Size());
+        output.ClearBuffer();
         shadow_pos = shadow.TopLeft() - total.TopLeft();
         original_pos = rc.TopLeft() - total.TopLeft();
     }
@@ -69,11 +69,11 @@ private:
         ImageHandler::Cover(img, m_mask, shadow);
         ScaleAlpha(img, m_cfg.shadow_opacity);
 
-        ImageFastPixel::SetRGBKeepAlpha(img, m_cfg.shadow_color);
+        ImageFastPixel::FillRGBKeepAlpha(img, m_cfg.shadow_color);
         BlurImage(img);
 
         // front
-        ImageFastPixel::SetRGBKeepAlpha(m_mask, m_cfg.text_color);
+        ImageFastPixel::FillRGBKeepAlpha(m_mask, m_cfg.text_color);
         CompositeStraight   fx(m_mask, original);
         fx.EnableParallel(IsParallelEnabled());
         img.ApplyEffect(fx);

@@ -12,39 +12,58 @@ public:
     /// Returns true if all pixels have alpha == 0xFF
     static bool IsFullyOpaque(const Image& img)
     {
-        PixelSpan   s(img);
-        if (!s)
+        PixelSpan   pv{ img };
+        if (!pv)
             return false;
 
         auto   func = [](const auto& px) { return px.a == 0xFF; };
 
-        if (s.use_parallel)
-            return std::all_of(std::execution::par, s.begin, s.end, func);
+        if (pv.use_parallel)
+            return std::all_of(std::execution::par, pv.begin, pv.end, func);
         else
-            return std::all_of(s.begin, s.end, func);
+            return std::all_of(pv.begin, pv.end, func);
     }
 
-    /// Sets RGB of all pixels to the specified color, keeping alpha unchanged
-    static void SetRGBKeepAlpha(Image& img, Color clr)
+    /// Fills RGB of all pixels to the specified color, keeping alpha unchanged
+    static void FillRGBKeepAlpha(Image& img, Color clr)
     {
-        PixelSpan   s(img);
-        if (!s)
-            return;
+        if (PixelSpan pv{ img })
+        {
+            pv.ForEachPixel([clr](auto& px) { PixelFunc::CopyRGB(&px, &clr); });
+            img.SetPremultiplied(false);
+        }
+    }
 
-        s.ForEachPixel([clr](auto& px) { PixelFunc::CopyRGB(&px, &clr); });
-        img.SetPremultiplied(false);
+    /// Fills alpha of all pixels to the specified value, keeping RGB unchanged
+    static void FillAlphaOnly(Image& img, BYTE alpha)
+    {
+        if (PixelSpan pv{ img })
+        {
+            pv.ForEachPixel([alpha](auto& px) { px.a = alpha; });
+            img.SetPremultiplied(false);
+        }
+    }
+
+    /// Fills the entire image with the specified color (RGBA)
+    static void FillColor(Image& img, Color clr)
+    {
+        if (PixelSpan pv{ img })
+        {
+            pv.ForEachPixel([clr](auto& px) { px = clr; });
+            img.SetPremultiplied(false);
+        }
     }
 
     /// Pre-multiplies RGB by alpha
     static void Premultiply(Image& img)
     {
-        PixelSpan   s(img);
-        if (!s || img.IsPremultiplied())
+        PixelSpan   pv{ img };
+        if (!pv || img.IsPremultiplied())
         {
             assert(false); return;
         }
 
-        s.ForEachPixel([](auto& px) { PixelFunc::Premultiply(px); });
+        pv.ForEachPixel([](auto& px) { PixelFunc::Premultiply(px); });
         img.SetPremultiplied(true);
     }
 
@@ -59,9 +78,10 @@ public:
         {
             if (img.ColorBits() == 32)
             {
+                int   count = img.Width() * img.Height();
                 begin = (Color*)img.GetMemStart();
-                end = begin + img.PixelCount();
-                use_parallel = img.PixelCount() > parallel_threshold; // 0.5M pixels
+                end = begin + count;
+                use_parallel = count > parallel_threshold; // 0.5M pixels
             }
             else { assert(false); }
         }

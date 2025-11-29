@@ -22,9 +22,10 @@ struct KernelInfo : public std::vector<int>,
         resize(2 * r + 1);
         std::iota(begin(), begin() + r + 1, 1); // generate: 1 2 3 4 5 4 3 2 1
         std::iota(rbegin(), rbegin() + r, 1);
+        stack_count = (r + 1) * (r + 1);
     }
 
-    int GetStackCount() const { return (r + 1) * (r + 1); }
+    int   stack_count;
 };
 
 using KernelCRef = const KernelInfo&;
@@ -64,7 +65,7 @@ struct LineBuffer : public std::vector<Color>
 private:
     void FillPadding(Color*& curr, const void* edge_pixel) const
     {
-        auto   t = (m_kernel.m_copy_edge ? *(Color*)edge_pixel : Color{});
+        auto   t = (m_kernel.m_copy_edge ? *(const Color*)edge_pixel : Color{});
         curr = std::fill_n(curr, m_kernel.r, t);
     }
 };
@@ -91,12 +92,12 @@ public:
 
     void Output(Color* p) const
     {
-        if (sa > 0.4)
+        if (sa > 0)
         {
             p->b = (BYTE)(sb / sa + 0.5);
             p->g = (BYTE)(sg / sa + 0.5);
             p->r = (BYTE)(sr / sa + 0.5);
-            p->a = (BYTE)(sa / m_kernel.GetStackCount() + 0.5);
+            p->a = (BYTE)(sa / m_kernel.stack_count + 0.5);
         }
         else
         {
@@ -182,7 +183,7 @@ private:
 class StackBlurHoriz : public StackBlurAxisBase
 {
     using StackBlurAxisBase::StackBlurAxisBase;
-    SIZE GetScanLineCountPerTask(const Image& img) override { return CSize(0, 200); }
+    SIZE GetScanLineCountPerTask(const Image& img) override { return { 0, 200 }; }
 
     void ProcessRegion(Image& img, CRect rc, IProgressListener* progress) override
     {
@@ -200,7 +201,7 @@ class StackBlurHoriz : public StackBlurAxisBase
 class StackBlurVert : public StackBlurAxisBase
 {
     using StackBlurAxisBase::StackBlurAxisBase;
-    SIZE GetScanLineCountPerTask(const Image& img) override { return CSize(200, 0); }
+    SIZE GetScanLineCountPerTask(const Image& img) override { return { 200, 0 }; }
 
     void ProcessRegion(Image& img, CRect rc, IProgressListener* progress) override
     {
@@ -224,7 +225,7 @@ private:
     const internal::KernelInfo   m_kernel;
 
 public:
-    StackBlur(int radius) : StackBlur(BlurParams{radius, true}) {}
+    StackBlur(int radius) : StackBlur(BlurParams{ radius, true }) {}
     StackBlur(const BlurParams& param) : m_kernel(param) {}
 
 private:

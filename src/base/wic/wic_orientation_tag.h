@@ -5,23 +5,11 @@ namespace WIC
     class OrientationTag
     {
     public:
-        static WICBitmapTransformOptions Read(IWICBitmapFrameDecode* frame_decode)
-        {
-            int   tag = 0;
-            if (auto reader = GetMetadataQueryReader(frame_decode))
-            {
-                CComPROPVARIANT   prop;
-                if ((reader->GetMetadataByName(OrientationKeyJpeg, &prop) == S_OK) && (prop.vt == VT_UI2))
-                    tag = prop.uiVal;
-            }
-            return ToWICFlipRotate(tag);
-        }
-
         static bool Write(IWICMetadataQueryWriter* writer, int orientation)
         {
             orientation = std::clamp(orientation, 1, 8);
 
-            // 不要用RemoveMetadataByName删除tag，否则只旋转tag时fast encode会失败
+            // 不旋转也不要用 RemoveMetadataByName 删除tag，否则只旋转tag时fast encode会失败
             CComPROPVARIANT   prop((USHORT)orientation);
             if (writer && (writer->SetMetadataByName(OrientationKeyJpeg, &prop) == S_OK))
                 return true;
@@ -63,12 +51,5 @@ namespace WIC
 
     private:
         static constexpr PCWSTR   OrientationKeyJpeg = L"/app1/ifd/{ushort=274}"; // In a TIFF file, use /ifd/{ushort=274}
-
-        static auto GetMetadataQueryReader(auto* frame_decode)
-        {
-            IWICMetadataQueryReaderPtr   t;
-            if (frame_decode) { frame_decode->GetMetadataQueryReader(&t); }
-            return t;
-        }
     };
 }

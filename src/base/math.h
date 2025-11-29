@@ -22,10 +22,11 @@ public:
         return 4 * ((width * bpp + 31) / 32);
     }
 
+    /// Truncate float/double to int; slightly faster for mostly positive pixel coordinates
     template<typename T>
-    static bool AlmostEqual(const T& a, const T& b)
+    static int Floor(T v)
     {
-        return std::fabs(a - b) < std::numeric_limits<T>::epsilon();
+        return (v < 0) ? (int)std::floor(v) : (int)v;
     }
 };
 

@@ -7,14 +7,14 @@ class BitmapHDC
 {
 private:
     HDC      m_dc = CreateCompatibleDC(NULL);
-    HGDIOBJ  m_old;
+    HGDIOBJ  m_bmp_bak;
     HGDIOBJ  m_font_bak;
 
 public:
     /// create DC and select bitmap.
     BitmapHDC(HBITMAP bmp)
     {
-        m_old = SelectObject(m_dc, bmp);
+        m_bmp_bak = SelectObject(m_dc, bmp);
         m_font_bak = GetCurrentObject(m_dc, OBJ_FONT);
         SetBkMode(m_dc, TRANSPARENT);
         SetStretchBltMode(m_dc, COLORONCOLOR);
@@ -24,7 +24,7 @@ public:
     ~BitmapHDC()
     {
         SelectObject(m_dc, m_font_bak);
-        SelectObject(m_dc, m_old);
+        SelectObject(m_dc, m_bmp_bak);
         DeleteDC(m_dc);
     }
 

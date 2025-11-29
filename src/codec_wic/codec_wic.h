@@ -7,25 +7,27 @@ _PHOXO_BEGIN
 class CodecWIC
 {
 public:
-    static Image LoadFile(PCWSTR filepath, REFWICPixelFormatGUID output_format = WICNormal32bpp, WIC::Metadata* meta = NULL, bool use_embedded_icc = false)
+    static Image LoadFile(PCWSTR filepath, REFWICPixelFormatGUID output_format = WICNormal32bpp, bool use_embedded_icc = false, WIC::Metadata* meta = NULL)
     {
         auto   stm = Utils::CreateStreamFromFileNoLock(filepath);
-        return LoadStream(stm, output_format, meta, use_embedded_icc);
+        return LoadStream(stm, output_format, use_embedded_icc, meta);
     }
 
-    static Image LoadStream(IStream* stream, REFWICPixelFormatGUID output_format, WIC::Metadata* meta = NULL, bool use_embedded_icc = false)
+    static Image LoadStream(IStream* stream, REFWICPixelFormatGUID output_format, bool use_embedded_icc = false, WIC::Metadata* meta = NULL)
     {
         auto   decoder = WIC::CreateDecoderFromStream(stream);
         auto   first_frame = WIC::GetFrame(decoder, 0); // just load first frame
-        if (meta)
-        {
-            meta->Read(first_frame);
-        }
-        return LoadFrame(first_frame, output_format, use_embedded_icc);
+        return LoadFrame(first_frame, output_format, use_embedded_icc, meta);
     }
 
-    static Image LoadFrame(IWICBitmapFrameDecode* frame_decode, REFWICPixelFormatGUID output_format, bool use_embedded_icc = false)
+    static Image LoadFrame(IWICBitmapFrameDecode* frame_decode, REFWICPixelFormatGUID output_format, bool use_embedded_icc = false, WIC::Metadata* meta = NULL)
     {
+        // read metadata to determine orientation (RAW/Jpeg/Tiff may contain it)
+        WIC::Metadata   temp_meta;
+        if (!meta)
+            meta = &temp_meta;
+        meta->Read(frame_decode);
+
         // 先改变格式很重要
         // 1. 碰到过一次格式不一样apply ICC时卡死
         // 2. 读JPG, 输出32bpp，测试发现对需要旋转的jpg先转换32bpp速度更快
@@ -40,7 +42,7 @@ public:
             }
         }
 
-        if (auto rotate = WIC::OrientationTag::Read(frame_decode))
+        if (auto rotate = meta->GetRotateFlag())
         {
             dst = CorrectOrientation(dst, rotate);
         }

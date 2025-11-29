@@ -2,67 +2,82 @@
 
 _PHOXO_BEGIN
 
-/// Sampling helper: computes the weighted average color of a subpixel area.
+/// Sampling helper: computes the weighted average color of a sub pixel area.
 class SamplingAreaBox
 {
+private:
+    // Overlap length of [i, i+1) and [low, high), used as weight in calculation.
+    // Can be 0 when the ratio is 0.5
+    static double OverlapLength(double i, double low, double high)
+    {
+        return (std::max)(0.0, (std::min)(i + 1, high) - (std::max)(i, low));
+    }
+
+    struct AreaBox
+    {
+        double   xlow, ylow, xhigh, yhigh;
+        int   left, top, right, bottom; // integer boundaries
+        double   xcache[103];
+
+        AreaBox(GPointF pt, double ratio)
+        {
+            double   radius = 0.5 / ratio;
+            xlow  = pt.X - radius;
+            xhigh = pt.X + radius;
+            ylow  = pt.Y - radius;
+            yhigh = pt.Y + radius;
+
+            left   = Math::Floor(xlow);
+            right  = Math::Floor(xhigh);
+            top    = Math::Floor(ylow);
+            bottom = Math::Floor(yhigh);
+
+            assert(right - left + 1 <= 103); // maximum length, ensures ratio is not less than 1%
+            FillXCache(xcache);
+        }
+
+        void FillXCache(double* buf) const
+        {
+            for (int x = left; x <= right; x++)
+                *buf++ = OverlapLength(x, xlow, xhigh);
+        }
+
+        double XWeight(int x) const { return xcache[x - left]; }
+
+        double OverlapY(int y) const { return OverlapLength(y, ylow, yhigh); }
+    };
+
 public:
     static Color Get(const Image& img, GPointF pt, double ratio)
     {
-        PixelAreaBox   box(pt, ratio);
+        const AreaBox   box(pt, ratio);
+        const int   left = box.left, top = box.top, right = box.right, bottom = box.bottom;
 
-        // If completely outside the image, return
-        if (box.right <= 0 || box.bottom <= 0 || box.left >= img.Width() || box.top >= img.Height())
-            return {};
-
-        CRect   loop = box.GetLoopRect();
-        for (int y = loop.top; y <= loop.bottom; y++) // Inclusive range: must use <=
+        Accumulate   acc;
+        for (int y = top; y <= bottom; y++) // Inclusive range: must use <=
         {
+            if (y < 0 || y >= img.Height())
+                continue;
+
             double   h = box.OverlapY(y);
-            if (h <= 0) continue;
-
-            for (int x = loop.left; x <= loop.right; x++) // must use <=
+            auto   line = (const Color*)img.GetLinePtr(y); // left may be negative
+            for (int x = left; x <= right; x++)
             {
-                double   w = box.OverlapX(x);
-                if (w <= 0) continue;
-
                 if (img.IsInside(x, y))
                 {
-                    box.Accumulate(*(const Color*)img.GetPixel(x, y), w * h);
+                    acc.Sum(line[x], box.XWeight(x) * h);
                 }
             }
         }
-        return box.ResultColor();
+        return acc.ResultColor();
     }
 
 private:
-    // Overlapping length of [i, i+1) and [low, high), used as weight in calculation.
-    static double OverlapLength(double i, double low, double high)
+    struct Accumulate
     {
-        return (std::min)(i + 1, high) - (std::max)(i, low);
-    }
-
-    struct PixelAreaBox
-    {
-        double   left, top, right, bottom;
         double   sb = 0, sg = 0, sr = 0, sa = 0, total_weight = 0;
 
-        PixelAreaBox(GPointF pt, double ratio)
-        {
-            double   radius = 0.5 / ratio;
-            left = pt.X - radius; top = pt.Y - radius;
-            right = pt.X + radius; bottom = pt.Y + radius;
-        }
-
-        // Integer bounding box (inclusive): x <= right
-        CRect GetLoopRect() const
-        {
-            return CRect((int)floor(left), (int)floor(top), (int)floor(right), (int)floor(bottom));
-        }
-
-        double OverlapX(int x) const { return OverlapLength(x, left, right); }
-        double OverlapY(int y) const { return OverlapLength(y, top, bottom); }
-
-        void Accumulate(const Color& px, double weight)
+        void Sum(const Color& px, double weight)
         {
             px.PremulSum(sb, sg, sr, sa, weight);
             total_weight += weight;
@@ -70,11 +85,11 @@ private:
 
         Color ResultColor() const
         {
-            Color   ret{};
+            Color   ret;
             if (total_weight > 0) // total_weight > 0 if accumulated, 0 if outside the layer
             {
                 ret.a = (BYTE)(sa / total_weight + 0.5);
-                if (ret.a) // May be fully transparent
+                if (ret.a) // may be fully transparent
                 {
                     ret.b = (BYTE)(sb / sa + 0.5);
                     ret.g = (BYTE)(sg / sa + 0.5);

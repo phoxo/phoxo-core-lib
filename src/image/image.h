@@ -47,7 +47,7 @@ public:
 
         if (Create(img.Size(), img.m_bpp, img.m_attribute))
         {
-            memcpy(m_pixel, img.m_pixel, img.GetPixelBufferSize());
+            memcpy(m_pixel, img.m_pixel, img.PixelBufferSize());
         }
         return *this;
     }
@@ -64,7 +64,7 @@ public:
 
     /// @name Create / Destroy
     /// @{
-    bool Create(const SIZE& image_size, int bpp = 32, int attribute = 0) { return Create(image_size.cx, image_size.cy, bpp, attribute); }
+    bool Create(SIZE image_size, int bpp = 32, int attribute = 0) { return Create(image_size.cx, image_size.cy, bpp, attribute); }
 
     /// create a new image, bpp can be <span style='color:#FF0000'>8 , 24 , 32</span>
     bool Create(int width, int height, int bpp = 32, int attribute = 0)
@@ -116,10 +116,10 @@ public:
         return bmp;
     }
 
-    /// clear all pixels to zero (transparent / black)
-    void ZeroPixels()
+    /// fill the pixel buffer with a byte value (default 0)
+    void ClearBuffer(BYTE v = 0)
     {
-        if (m_pixel) { memset(m_pixel, 0, GetPixelBufferSize()); }
+        if (m_pixel) { memset(m_pixel, v, PixelBufferSize()); }
     }
     /// @}
 
@@ -127,7 +127,7 @@ public:
     /// @{
     bool IsValid() const { return m_pixel != 0; }
     bool IsInside(int x, int y) const { return (x >= 0) && (x < m_width) && (y >= 0) && (y < m_height); }
-    bool IsInside(const POINT& pt) const { return IsInside(pt.x, pt.y); }
+    bool IsInside(POINT pt) const { return IsInside(pt.x, pt.y); }
 
     /// no boundary checks, so <span style='color:#FF0000'>Crash</span> if y exceed.
     inline BYTE* GetLinePtr(int y) const
@@ -145,19 +145,19 @@ public:
             return (py + x);
         return (py + x * 3); // 24bpp
     }
-    BYTE* GetPixel(const POINT& pt) const { return GetPixel(pt.x, pt.y); }
+    BYTE* GetPixel(POINT pt) const { return GetPixel(pt.x, pt.y); }
 
-    SIZE Size() const { return { m_width, m_height }; }
+    CSize Size() const { return { m_width, m_height }; }
     int Width() const { return m_width; }
     int Height() const { return m_height; }
     int ColorBits() const { return m_bpp; }
     int Stride() const { return m_stride; }
-    int PixelCount() const { return m_width * m_height; }
-    int GetPixelBufferSize() const { return m_stride * m_height; } ///< buffer size in bytes
+    int PixelBufferSize() const { return m_stride * m_height; } ///< buffer size in bytes
     BYTE* GetMemStart() const { return m_pixel; } ///< pointer to pixel buffer
     int Attribute() const { return m_attribute; }
     operator HBITMAP() const { return m_DIB_Handle; }
     explicit operator bool() const { return m_pixel != 0; }
+
     bool IsPremultiplied() const { return (m_attribute & PremultipliedAlpha); }
     void SetPremultiplied(bool v) { v ? ModifyAttribute(0, PremultipliedAlpha) : ModifyAttribute(PremultipliedAlpha, 0); }
     void ModifyAttribute(int remove, int add)
@@ -172,9 +172,9 @@ public:
     /// you can apply some effect (e.g. effect::BrightnessContrast) on buffer
     void Attach32bppBuffer(int width, int height, void* pixel)
     {
+        assert(!IsValid());
         if ((width > 0) && (height != 0) && pixel)
         {
-            Destroy();
             m_width = width;
             m_height = abs(height);
             m_bpp = 32;
@@ -225,7 +225,7 @@ public:
         int   bpp = ColorBits() / 8;
         for (int y = rc.top; y < rc.bottom; y++)
         {
-            BYTE *   cur = GetPixel(rc.left, y);
+            BYTE*   cur = GetPixel(rc.left, y);
             for (int x = rc.left; x < rc.right; x++, cur += bpp)
             {
                 T::HandlePixel(*this, x, y, (Color*)cur, effect);

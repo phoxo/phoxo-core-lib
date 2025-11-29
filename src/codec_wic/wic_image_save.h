@@ -34,7 +34,7 @@ public:
 
     bool IsEncoderAvailable() const
     {
-        return (m_frame_encode != NULL);
+        return m_frame_encode != NULL;
     }
 
     bool IsJPEG() const { return m_image_format == GUID_ContainerFormatJpeg; }
