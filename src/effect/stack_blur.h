@@ -156,8 +156,7 @@ public:
 private:
     void SumFirstKernel(const Color* px)
     {
-        int   i = 0;
-        for (int weight : m_buf.m_kernel)
+        for (int i = 0; int weight : m_buf.m_kernel)
         {
             if (i <= m_buf.m_kernel.r)
                 m_out.Add(px);
@@ -180,7 +179,7 @@ private:
     bool IsSupported(const Image& img) final { return true; }
 };
 
-class StackBlurHoriz : public StackBlurAxisBase
+class StackBlurHorz : public StackBlurAxisBase
 {
     using StackBlurAxisBase::StackBlurAxisBase;
     SIZE GetScanLineCountPerTask(const Image& img) override { return { 0, 200 }; }
@@ -238,10 +237,10 @@ private:
     {
         if (progress) { progress->BeginFixProgress(0); }
 
-        std::vector<unique_ptr<ImageEffect>>   effects;
-        effects.push_back(make_unique<internal::StackBlurVert>(m_kernel)); // 8bit改造这两个effect可以替换成模板
-        effects.push_back(make_unique<internal::StackBlurHoriz>(m_kernel));
+        internal::StackBlurVert   vert(m_kernel); // 8bit改造这两个effect可以替换成模板
+        internal::StackBlurHorz   horz(m_kernel);
 
+        ImageEffect*   effects[] = { &vert, &horz };
         for (auto& eff : effects)
         {
             eff->EnableParallel(IsParallelEnabled());

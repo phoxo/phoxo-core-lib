@@ -243,14 +243,8 @@ private:
 
     void AllocPixelBuffer()
     {
-        size_t   info_byte = sizeof(BITMAPINFOHEADER) + 16; // +16 bytes for optional bit masks (used by some 16/32-bpp formats)
-        if (ColorBits() <= 8)
-        {
-            info_byte += (sizeof(RGBQUAD) * 256);
-        }
-
-        std::vector<BYTE>   buf(info_byte);
-        auto   info = (BITMAPINFO*)buf.data();
+        BYTE   buffer[sizeof(BITMAPINFOHEADER) + 16 + 256 * sizeof(RGBQUAD)]{}; // +16 bytes for optional bit masks (used by some 16/32-bpp formats)
+        auto   info = (BITMAPINFO*)buffer;
 
         info->bmiHeader = { sizeof(BITMAPINFOHEADER), m_width, -m_height, 1, m_bpp }; // the height is negative, from top to bottom
         m_DIB_Handle = CreateDIBSection(NULL, info, DIB_RGB_COLORS, (VOID**)&m_pixel, NULL, 0);

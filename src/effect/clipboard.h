@@ -32,7 +32,7 @@ private:
 
         CopyMemory(tmp.GetMemStart(), img.GetMemStart(), img.PixelBufferSize());
         Flip   eff;
-        eff.EnableParallel(true);
+        eff.EnableParallel();
         tmp.ApplyEffect(eff);
 
         GlobalUnlock(mem);

@@ -12,7 +12,7 @@ namespace WIC
         UINT   m_height = 0;
         UINT   m_stride = 0;
         UINT   m_buf_size = 0;
-        BYTE   * m_data = nullptr;
+        BYTE*  m_data = nullptr;
 
     public:
         BitmapLock(IWICBitmapPtr src)

@@ -8,7 +8,7 @@ _PHOXO_EFFECT_BEGIN
 template<typename T>
 class PixelIterator : public ImageEffect
 {
-    void ProcessRegion(Image& img, CRect rc, IProgressListener* progress) override final
+    void ProcessRegion(Image& img, CRect rc, IProgressListener*) override final
     {
         img.IterateRangePixels(rc, (T&)*this);
     }

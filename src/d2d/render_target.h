@@ -37,7 +37,7 @@ namespace D2D
         CSize   dcsize = Utils::GetBitmapSize((HBITMAP)GetCurrentObject(dc, OBJ_BITMAP));
         if (render && dcsize.cx)
         {
-            render->BindDC(dc, CRect(CPoint(), dcsize));
+            render->BindDC(dc, CRect({}, dcsize));
         }
     }
 

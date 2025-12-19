@@ -63,17 +63,24 @@ public:
 
     bool WriteFile(IWICBitmapSource* src)
     {
-        bool   t[3] = {};
         try
         {
-            t[0] = (m_frame_encode->WriteSource(src, NULL) == S_OK);
-            t[1] = (m_frame_encode->Commit() == S_OK);
-            t[2] = (m_encoder->Commit() == S_OK);
-        }
-        catch (_com_error&) {}
+            bool ok = (m_frame_encode->WriteSource(src, NULL) == S_OK); assert(ok);
+            if (!ok) return false;
 
-        bool   ret = (t[0] && t[1] && t[2]); assert(ret);
-        return ret;
+            ok = (m_frame_encode->Commit() == S_OK); assert(ok);
+            if (!ok) return false;
+
+            ok = (m_encoder->Commit() == S_OK); assert(ok);
+            if (!ok) return false;
+
+            return true;
+        }
+        catch (_com_error&)
+        {
+            assert(false);
+            return false;
+        }
     }
 
 private:
@@ -115,8 +122,10 @@ private:
                 m_encoder->CreateNewFrame(&m_frame_encode, &prop);
                 WriteImageQualityProperty(prop, jpeg_quality / 100.0f);
                 m_frame_encode->Initialize(prop);
+
+                // if there is no orientation tag, fast rotation of JPEG may fail later
                 if (IsJPEG())
-                    SetOrientationTag(1); // 如果没有方向tag，以后快速旋转jpg会失败
+                    SetOrientationTag(1);
             }
             else
             {
@@ -130,7 +139,7 @@ private:
     static void WriteImageQualityProperty(IPropertyBag2* prop, float quality)
     {
         _variant_t   val(quality);
-        _bstr_t   prop_name = L"ImageQuality";
+        WCHAR   prop_name[] = L"ImageQuality";
         PROPBAG2   str = { .pstrName = prop_name };
         if (prop) { prop->Write(1, &str, &val); }
     }

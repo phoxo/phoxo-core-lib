@@ -25,7 +25,7 @@ public:
     /// @name Parallel processing control.
     ///@{
     bool IsParallelEnabled() const { return m_parallel; }
-    void EnableParallel(bool enable) { m_parallel = enable; }
+    void EnableParallel(bool enable = true) { m_parallel = enable; }
     virtual SIZE GetScanLineCountPerTask(const Image& img) { return { 0, 200 }; }
     ///@}
 
