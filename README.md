@@ -116,7 +116,7 @@ CodecGdiplus::SaveFile(L"d:\\out.png", img);
 ```
 This is the program's output:
 
-![out](https://github.com/phoxo/UIStone/assets/168192359/40b19e8f-08e9-4477-9823-b4b5512b2b10)
+![out](doc/github_images/out.png)
 
 As you can see, high-quality rendering in GDI+ can be applied directly to the bitmap. Many operations in PhoXo are done this way.
 
