@@ -1,6 +1,12 @@
 
 
 PhoXo Core Lib
+> âš ï¸ Important:
+> The best example of using PhoXo Core Lib is the full PhoXo application itself.
+> To see complete usage, initialization, and advanced effects in practice,
+> please check the PhoXo repository and build the project:
+> [PhoXo GitHub Repository](https://github.com/atphoxo/PhoXo)
+
 ===========
 **PhoXo Core Lib** is a lightweight, header-only C++ library designed for image manipulation. Initially developed as a cross-platform solution, the focus has now shifted to Windows. This change is driven by limited maintenance time and the goal to optimize performance on the Windows platform. Enhancements specific to Windows include features such as thread pooling, Bitmap handles, and seamless integration with Device Contexts (DC) and Direct2D (D2D).
 
@@ -41,7 +47,7 @@ using namespace phoxo;
 ```
 > **Why don't I use std::wstring instead of CString?**
 
- - Pros: `wstring` is faster than `CString` for concatenation and heavy string processing, and our library doesn¡¯t handle many strings.
+ - Pros: `wstring` is faster than `CString` for concatenation and heavy string processing, and our library doesnâ€™t handle many strings.
 - Cons: a `wstring` uses 40 bytes, while a `CString` uses 8 bytes.
 - Cons: passing `nullptr` to `wstring` causes a crash and requires protection. `wstring` does not implicitly convert to `WCHAR*`, resulting in redundant code.
 ## Load / Save image file 
