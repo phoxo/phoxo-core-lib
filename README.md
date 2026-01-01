@@ -1,13 +1,11 @@
-
-
 PhoXo Core Lib
-> ⚠️ Important:
-> The best example of using PhoXo Core Lib is the full PhoXo application itself.
+===========
+> 🔔 The best example of using PhoXo Core Lib is the full PhoXo application itself.
 > To see complete usage, initialization, and advanced effects in practice,
 > please check the PhoXo repository and build the project:
 > [PhoXo GitHub Repository](https://github.com/atphoxo/PhoXo)
 
-===========
+
 **PhoXo Core Lib** is a lightweight, header-only C++ library designed for image manipulation. Initially developed as a cross-platform solution, the focus has now shifted to Windows. This change is driven by limited maintenance time and the goal to optimize performance on the Windows platform. Enhancements specific to Windows include features such as thread pooling, Bitmap handles, and seamless integration with Device Contexts (DC) and Direct2D (D2D).
 
 Despite the shift to Windows, the library remains fundamentally focused on image processing, specifically manipulating two-dimensional arrays. The majority of the code is written in generic C++, ensuring both flexibility and efficiency. I hope this information proves useful.
