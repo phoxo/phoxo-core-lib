@@ -116,7 +116,7 @@ private:
     {
         try
         {
-            if (IsJPEG() || (m_image_format == WIC::GUID_ContainerFormat_Jxl))
+            if (IsJPEG() || (m_image_format == GUID_ContainerFormatJpegXL))
             {
                 IPropertyBag2Ptr   prop;
                 m_encoder->CreateNewFrame(&m_frame_encode, &prop);

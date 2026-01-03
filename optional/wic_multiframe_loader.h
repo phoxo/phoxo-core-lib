@@ -25,7 +25,7 @@ public:
 
     bool IsWebp() const { return m_format == GUID_ContainerFormatWebp; }
     bool IsGif() const { return m_format == GUID_ContainerFormatGif; }
-    bool IsJxl() const { return m_format == WIC::GUID_ContainerFormat_Jxl; }
+    bool IsJxl() const { return m_format == GUID_ContainerFormatJpegXL; }
     bool IsCurrentFrameValid() const { return m_frame != NULL; }
     UINT GetCurrentFrameIndex() const { return m_current_frame; }
 

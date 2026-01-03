@@ -31,15 +31,20 @@ enum class ImageFormat
 class ImageFileExtParser
 {
 public:
+    /// Get file's extension name, not including leading period.
+    static CString GetExtName(PCWSTR filepath)
+    {
+        if (auto p = PathFindExtension(filepath); p && (*p == L'.'))
+            return p + 1; // skip '.'
+        return L"";
+    }
+
     /// get image format from file path.
     static ImageFormat GetType(PCWSTR filepath)
     {
         using enum ImageFormat;
 
-        CString   e;
-        if (auto ptr = PathFindExtension(filepath); ptr && (*ptr == L'.'))
-            e = ptr + 1; // skip '.'
-
+        CString   e = GetExtName(filepath);
         e.MakeLower();
 
         // ---- JPEG ----
