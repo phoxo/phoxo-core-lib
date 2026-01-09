@@ -8,18 +8,21 @@ namespace D2D
         IStreamPtr   m_stream;
 
     public:
-        SVGDrawer(LPCVOID ptr, UINT length)
+        explicit SVGDrawer(IStream* stream) : m_stream{ stream }
         {
-            m_stream = phoxo::Utils::CreateMemStream(ptr, length);
         }
 
-        // 注意：只能渲染 premultiplied alpha
+        explicit SVGDrawer(LPCVOID ptr, UINT length) : m_stream{ phoxo::Utils::CreateMemStream(ptr, length) }
+        {
+        }
+
+        // Render SVG into a premultiplied-alpha WIC bitmap
         bool DrawSvg(IWICBitmap* target, float scale, ID2D1Factory* factory) const
         {
             D2D1_SIZE_F   viewport = GetViewportSize(target);
             if (m_stream && (viewport.width > 0))
             {
-                // 这里有隐式转换 RenderTarget -> DeviceContext , from Windows 10 1703, build 15063. 版本太老返回NULL
+                // Requires Windows 10 1703 (15063+) for DeviceContext5, RenderTarget -> DeviceContext5 conversion
                 if (ID2D1DeviceContext5Ptr dc5 = CreateWicBitmapRenderTarget(factory, target))
                 {
                     if (scale != 1)

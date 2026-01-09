@@ -92,6 +92,9 @@ public:
     /// destroy the image
     void Destroy()
     {
+#ifndef NDEBUG
+        ClearBuffer(0);
+#endif
         if (m_DIB_Handle) { DeleteObject(m_DIB_Handle); }
         InitMember();
     }

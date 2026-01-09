@@ -34,6 +34,20 @@ public:
         }
     }
 
+    /// Fills RGB of all pixels, keeps alpha, then premultiplies
+    static void FillRGBAndPremultiply(Image& img, Color clr)
+    {
+        if (PixelSpan pv{ img })
+        {
+            pv.ForEachPixel([clr](auto& px)
+            {
+                PixelFunc::CopyRGB(&px, &clr);
+                PixelFunc::Premultiply(px);
+            });
+            img.SetPremultiplied(true);
+        }
+    }
+
     /// Fills alpha of all pixels to the specified value, keeping RGB unchanged
     static void FillAlphaOnly(Image& img, BYTE alpha)
     {

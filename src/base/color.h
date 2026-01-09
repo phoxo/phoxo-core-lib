@@ -56,7 +56,7 @@ public:
 
     bool IsColorLight() const
     {
-        return (5 * g + 2 * r + b) > (8 * 128);
+        return (r * 299 + g * 587 + b * 114) > (178 * 1000);
     }
 
     COLORREF ToCOLORREF() const
